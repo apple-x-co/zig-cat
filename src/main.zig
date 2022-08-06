@@ -6,14 +6,11 @@ pub fn main() anyerror!void {
     const args = try std.process.argsAlloc(pageAllocator);
     defer pageAllocator.free(args);
 
-    const stdout = std.io.getStdOut().writer();
+    const stdout = std.io.getStdOut();
 
     if (args.len == 1) {
-        //try stdout.print("Missing filename\n", .{});
-
-        const stdin = std.io.getStdIn().reader();
-
-        out(stdin, stdout) catch |err| {
+        const stdin = std.io.getStdIn();
+        cat(stdin, stdout) catch |err| {
             std.log.warn("error reading stdin : {}", .{err});
         };
 
@@ -28,20 +25,17 @@ pub fn main() anyerror!void {
             continue;
         }
 
-        // std.debug.print("{s}\n", .{arg}); // Output file name
-
-        const file = try fs.cwd().openFile(arg, .{.read = true, .write = false});
+        const file = try fs.cwd().openFile(arg, .{ .read = true, .write = false });
         defer file.close();
-
-        const fileReader = file.reader();
-
-        out(fileReader, stdout) catch |err| {
-            std.log.warn("error reading file '{s}': {}", .{arg, err});
+        cat(file, stdout) catch |err| {
+            std.log.warn("error reading file '{s}': {}", .{ arg, err });
         };
     }
 }
 
-fn out(reader: anytype, writer: anytype) anyerror!void {
+fn cat(in: std.fs.File, out: std.fs.File) anyerror!void {
+    const reader = in.reader();
+    const writer = out.writer();
     var buf: [std.mem.page_size]u8 = undefined;
     while (true) {
         const size = try reader.read(buf[0..]);
