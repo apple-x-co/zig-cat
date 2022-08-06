@@ -1,12 +1,12 @@
 # zig-cat
 
-## Installation
+## Build
 
 ```bash
 zig build -Drelease-fast
 ```
 
-## Debug Run
+## Run
 
 ```bash
 zig build run -- README.md
