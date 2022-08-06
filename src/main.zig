@@ -13,16 +13,27 @@ pub fn main() anyerror!void {
         return;
     }
 
+    const fs = std.fs;
+
     // std.debug.print("number of args: {}\n", .{args.len});
     for (args) |arg, index| {
         if (index == 0) {
             continue;
         }
 
-        std.debug.print("{s}\n", .{arg});
+        // std.debug.print("{s}\n", .{arg}); // Output file name
 
-        // var file = try std.fs.cwd().openFile(arg);
-        // defer file.close();
-        // std.debug.print("{s}\n", .{file.stat});
+        const file = try fs.cwd().openFile(arg, .{.read = true, .write = false});
+        defer file.close();
+
+        var buf: [std.mem.page_size]u8 = undefined;
+        while (true) {
+            const size = try file.read(buf[0..]);
+            if (size <= 0) {
+                break;
+            }
+
+            try stdout.writeAll(buf[0..size]);
+        }
     }
 }
