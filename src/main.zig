@@ -9,7 +9,19 @@ pub fn main() anyerror!void {
     const stdout = std.io.getStdOut().writer();
 
     if (args.len == 1) {
-        try stdout.print("Missing filename\n", .{});
+        //try stdout.print("Missing filename\n", .{});
+
+        const stdin = std.io.getStdIn().reader();
+        var buf: [std.mem.page_size]u8 = undefined;
+        while (true) {
+            const size = try stdin.read(buf[0..]);
+            if (size <= 0) {
+                break;
+            }
+
+            try stdout.writeAll(buf[0..size]);
+        }
+
         return;
     }
 
