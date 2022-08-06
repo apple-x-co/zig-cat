@@ -12,15 +12,10 @@ pub fn main() anyerror!void {
         //try stdout.print("Missing filename\n", .{});
 
         const stdin = std.io.getStdIn().reader();
-        var buf: [std.mem.page_size]u8 = undefined;
-        while (true) {
-            const size = try stdin.read(buf[0..]);
-            if (size <= 0) {
-                break;
-            }
 
-            try stdout.writeAll(buf[0..size]);
-        }
+        out(stdin, stdout) catch |err| {
+            std.log.warn("error reading stdin : {}", .{err});
+        };
 
         return;
     }
@@ -38,14 +33,22 @@ pub fn main() anyerror!void {
         const file = try fs.cwd().openFile(arg, .{.read = true, .write = false});
         defer file.close();
 
-        var buf: [std.mem.page_size]u8 = undefined;
-        while (true) {
-            const size = try file.read(buf[0..]);
-            if (size <= 0) {
-                break;
-            }
+        const fileReader = file.reader();
 
-            try stdout.writeAll(buf[0..size]);
+        out(fileReader, stdout) catch |err| {
+            std.log.warn("error reading file '{s}': {}", .{arg, err});
+        };
+    }
+}
+
+fn out(reader: anytype, writer: anytype) anyerror!void {
+    var buf: [std.mem.page_size]u8 = undefined;
+    while (true) {
+        const size = try reader.read(buf[0..]);
+        if (size <= 0) {
+            break;
         }
+
+        try writer.writeAll(buf[0..size]);
     }
 }
