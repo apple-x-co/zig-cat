@@ -20,12 +20,12 @@ pub fn main() anyerror!void {
     const fs = std.fs;
 
     // std.debug.print("number of args: {}\n", .{args.len});
-    for (args) |arg, index| {
+    for (args, 0..) |arg, index| {
         if (index == 0) {
             continue;
         }
 
-        const file = try fs.cwd().openFile(arg, .{ .read = true, .write = false });
+        const file = try fs.cwd().openFile(arg, .{ .mode = .read_only });
         defer file.close();
         cat(file, stdout) catch |err| {
             std.log.warn("error reading file '{s}': {}", .{ arg, err });
